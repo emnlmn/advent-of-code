@@ -2,6 +2,7 @@ package main
 
 import (
 	"bufio"
+	"day1"
 	"errors"
 	"fmt"
 	"os"
@@ -10,8 +11,6 @@ import (
 	"strconv"
 	"strings"
 )
-
-type Measurements = []int
 
 func main() {
 	var measurements []int
@@ -23,19 +22,21 @@ func main() {
 		return
 	}
 
-	increments := CountIncrements(measurements)
+	slidedMeasurements := day1.SlideMeasurements(measurements)
+
+	increments := day1.CountIncrements(slidedMeasurements)
 
 	fmt.Println(increments)
 }
 
-func getMeasurementsFromInputFile() (measurements Measurements, err error) {
+func getMeasurementsFromInputFile() (measurements day1.Measurements, err error) {
 	_, filename, _, ok := runtime.Caller(1)
 
 	if !ok {
 		return measurements, errors.New("could not get runtime path")
 	}
 
-	filepath := path.Join(path.Dir(filename), "input.txt")
+	filepath := path.Join(path.Dir(filename), "../input.txt")
 
 	file, err := os.Open(filepath)
 
