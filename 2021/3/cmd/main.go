@@ -18,31 +18,14 @@ func main() {
 		panic(err)
 	}
 
-	leng := len(binaries[0])
+	oxigen, co2 := calculateRates2(binaries)
 
-	var oneCount = make([]int, leng)
-	var zeroCount = make([]int, leng)
-	for _, binaryString := range binaries {
-		for key, char := range binaryString {
-			digit := char - '0'
-			switch digit {
-			case 1:
-				oneCount[key] = oneCount[key] + 1
-			case 0:
-				zeroCount[key] = zeroCount[key] + 1
-			}
-		}
-	}
-
-	gamma, epsilon := calculateRates(oneCount, zeroCount)
-
-
-	g, err := strconv.ParseInt(gamma, 2, 64);
+	g, err := strconv.ParseInt(oxigen, 2, 64)
 	if err != nil {
 		fmt.Println(err)
 	}
 
-	e, err := strconv.ParseInt(epsilon, 2, 64);
+	e, err := strconv.ParseInt(co2, 2, 64)
 
 	if err != nil {
 		fmt.Println(err)
@@ -53,25 +36,84 @@ func main() {
 	fmt.Println(tot)
 }
 
-func calculateRates(oneCount []int, zeroCount []int) (gamma string, epsilon string) {
-	leng := len(oneCount)
-	gammaArr := make([]string, leng)
-	epsilonArr := make([]string, leng)
-	for key, one := range oneCount {
-		zero := zeroCount[key]
-		if one > zero {
-			gammaArr[key] = "1"
-			epsilonArr[key] = "0"
-		} else {
-			gammaArr[key] = "0"
-			epsilonArr[key] = "1"
+func calculateCounts(binaries []string, significantDigit int) (oneCount int, zeroCount int) {
+	oneCount = 0
+	zeroCount = 0
+
+	for _, binaryString := range binaries {
+		digit := binaryString[significantDigit] - '0'
+
+		switch digit {
+		case 1:
+			oneCount ++
+		case 0:
+			zeroCount ++
 		}
 	}
+	return oneCount, zeroCount
+}
 
-	gamma = strings.Join(gammaArr, "")
-	epsilon = strings.Join(epsilonArr, "")
+func calculateRates2(binaries []string) (oxigen string, co2 string) {
+	oxBinaries := binaries
 
-	return gamma, epsilon
+	significantDigit := 0
+	for len(oxBinaries) > 1 {
+		oneCount, zeroCount := calculateCounts(oxBinaries, significantDigit)
+		isOne := oneCount > zeroCount
+		if oneCount == zeroCount {
+			isOne = true
+		}
+
+		var b []string
+		for _, binary := range oxBinaries {
+			digit := binary[significantDigit] - '0'
+			switch digit {
+			case 1:
+				if isOne {
+					b = append(b, binary)
+				}
+			case 0:
+				if !isOne {
+					b = append(b, binary)
+				}
+			}
+		}
+		significantDigit++
+		oxBinaries = b
+	}
+
+	co2Binaries := binaries
+	significantDigit = 0
+	for len(co2Binaries) > 1 {
+		oneCount, zeroCount := calculateCounts(co2Binaries, significantDigit)
+		isOne := oneCount > zeroCount
+		if oneCount == zeroCount {
+			isOne = true
+		}
+
+		var b []string
+		for _, binary := range co2Binaries {
+			digit := binary[significantDigit] - '0'
+			switch digit {
+			case 1:
+				if !isOne {
+					b = append(b, binary)
+				}
+			case 0:
+				if isOne {
+					b = append(b, binary)
+				}
+			}
+		}
+
+		significantDigit++
+		co2Binaries = b
+	}
+
+	oxigen = oxBinaries[0]
+	co2 = co2Binaries[0]
+
+	return oxigen, co2
 }
 
 func readInput() (lines []string, err error) {
