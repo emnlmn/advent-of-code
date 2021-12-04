@@ -28,6 +28,9 @@ func main() {
 		panic(err)
 	}
 
+	scoreFinal := 0
+	winningBoards := map[int]bool{}
+
 	for _, drownedNumber := range numbers {
 		for boardId, board := range boards {
 			for rowId, row := range board {
@@ -35,18 +38,23 @@ func main() {
 					if number == drownedNumber {
 						boardMatches[boardId][rowId][numberId] = true
 
+						if ok := winningBoards[boardId]; ok {
+							continue
+						}
+
 						score := getBoardScore(board, boardMatches[boardId], rowId, numberId)
 
 						if score > 0 {
-							fmt.Println(score, number)
-							fmt.Println(score * number)
-							os.Exit(1)
+							winningBoards[boardId] = true
+							scoreFinal = score * number
 						}
 					}
 				}
 			}
 		}
 	}
+
+	fmt.Println(scoreFinal)
 }
 
 func getBoardScore(board board, boardMatch boardMatch, rowId int, columnId int) (score int) {
