@@ -39,7 +39,7 @@ func main() {
 			y1 := int(math.Max(float64(coord.begin.y), float64(coord.end.y)))
 			y2 := int(math.Min(float64(coord.begin.y), float64(coord.end.y)))
 
-			for i:=y2; i <= y1; i++ {
+			for i := y2; i <= y1; i++ {
 				if _, ok := terrain[x]; ok {
 					if _, ok := terrain[x][i]; ok {
 						terrain[x][i] = terrain[x][i] + 1
@@ -52,6 +52,7 @@ func main() {
 				}
 			}
 
+			continue
 		}
 
 		if coord.begin.y == coord.end.y {
@@ -71,6 +72,54 @@ func main() {
 					terrain[i] = tmp
 				}
 			}
+
+			continue
+		}
+
+		// diagonal lines
+		// {{8 0} {0 8}}
+		// {{6 4} {2 0}}
+		// {{0 0} {8 8}}
+		// {{5 5} {8 2}}
+		// . . 1 . . . . . .
+		// . . . 1 . . . . .
+		// . . . . 1 . . . 1
+		// . . . . . 1 . 1 .
+		// . . . . . . 2 . .
+		// . . . . . 1 . . .
+		// . . . . . . . . .
+		// . . . . . . . . .
+		var begin point
+		var end point
+		if coord.begin.x > coord.end.x {
+			begin = coord.end
+			end = coord.begin
+		} else {
+			begin = coord.begin
+			end = coord.end
+		}
+
+		step := 0
+		y := begin.y
+		for i := begin.x; i <= end.x; i++ {
+			if begin.y < end.y {
+				y = begin.y + step
+			} else {
+				y = begin.y - step
+			}
+
+			if _, ok := terrain[i]; ok {
+				if _, ok := terrain[i][y]; ok {
+					terrain[i][y] = terrain[i][y] + 1
+				} else {
+					terrain[i][y] = 1
+				}
+			} else {
+				tmp := map[int]int{y: 1}
+				terrain[i] = tmp
+			}
+
+			step++
 		}
 	}
 
@@ -78,7 +127,7 @@ func main() {
 	for _, x := range terrain {
 		for _, y := range x {
 			if y > 1 {
-				count ++
+				count++
 			}
 		}
 	}
