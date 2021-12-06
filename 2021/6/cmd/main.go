@@ -12,32 +12,43 @@ import (
 )
 
 func main() {
-	firstGeneration, err := readInput()
-	fmt.Println(firstGeneration)
+	input, err := readInput()
 
+	firstGeneration := map[int]int{}
+	for _, d := range input {
+		if _, ok := firstGeneration[d]; ok {
+			firstGeneration[d] += 1
+		} else {
+			firstGeneration[d] = 1
+		}
+	}
 
 	if err != nil {
 		panic(err)
 	}
 
-	var newElements int
-	var newGeneration []int
+	for gen := 0; gen < 256; gen++ {
+		newGeneration := map[int]int{}
 
-	for _, day := range firstGeneration {
-		newElements = 0
-		newGeneration = make([]int, len(firstGeneration))
-		day--
-		if day == 0 {
-			day = 6
-			newElements++
-		}
-		newGeneration = append(newGeneration, day)
+		fmt.Println(gen)
 
-		for i := 0; i < newElements; i++ {
-			newGeneration = append(newGeneration, 8)
+		for day, count := range firstGeneration {
+			if day == 0 {
+				newGeneration[6] += count
+				newGeneration[8] += count
+			} else {
+				newGeneration[day-1] += count
+			}
 		}
 
+		firstGeneration = newGeneration
 	}
+	tot := 0
+	for _, cnt := range firstGeneration {
+		tot += cnt
+	}
+
+	fmt.Println(tot)
 }
 
 func readInput() (lanternLights []int, err error) {
