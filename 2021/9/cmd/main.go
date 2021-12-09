@@ -7,6 +7,7 @@ import (
 	"os"
 	"path"
 	"runtime"
+	"sort"
 	"strconv"
 	"strings"
 )
@@ -50,28 +51,30 @@ func main() {
 	lx := len(matrix[0])
 
 	visited := make(map[Point]bool, 0)
-	lowPoints := make(map[Point]int, 0)
+	basins := make([][]Point, 0)
 
 	for i := 0; i < ly; i++ {
 		for j := 0; j < lx; j++ {
 			p := Point{j, i}
-			lowPoint, found := dfs(matrix, p, visited)
-			if found {
-				lowPoints[lowPoint] = matrix[lowPoint.y][lowPoint.x]
+			basin := dfs(matrix, p, visited)
+			if len(basin) > 0 {
+				basins = append(basins, basin)
 			}
 		}
 	}
 
-	tot := 0
-	for _, k := range lowPoints {
-		tot += k + 1
+	lengths := []int{}
+	for _, b := range basins {
+		lengths = append(lengths, len(b))
 	}
 
-	fmt.Println(tot)
-	fmt.Println(lowPoints)
+	sort.Ints(lengths)
+
+	l := len(lengths)
+	fmt.Println(lengths[l-1] * lengths[l-2] * lengths[l-3])
 }
 
-func dfs(matrix [][]int, sp Point, visited map[Point]bool) (lower Point, found bool) {
+func dfs(matrix [][]int, sp Point, visited map[Point]bool) (basin []Point) {
 	st := Stack{}
 	st.push(sp)
 
@@ -83,66 +86,37 @@ func dfs(matrix [][]int, sp Point, visited map[Point]bool) (lower Point, found b
 		}
 
 		if _, ok := visited[p]; ok {
-			break
+			continue
 		}
 
-		height := matrix[p.y][p.x]
-
-		hasLower := false
-
-		if isValid(matrix, p.x+1, p.y) && height >= matrix[p.y][p.x+1] {
-			hasLower = true
-
+		if isValid(matrix, p.x+1, p.y) && matrix[p.y][p.x+1] != 9 {
 			p := Point{p.x + 1, p.y}
 			st.push(p)
 		}
 
-		if isValid(matrix, p.x-1, p.y) && height >= matrix[p.y][p.x-1] {
-			hasLower = true
-
+		if isValid(matrix, p.x-1, p.y) && matrix[p.y][p.x-1] != 9 {
 			p := Point{p.x - 1, p.y}
 			st.push(p)
 		}
 
-		if isValid(matrix, p.x, p.y+1) && height >= matrix[p.y+1][p.x] {
-			hasLower = true
-
+		if isValid(matrix, p.x, p.y+1) && matrix[p.y+1][p.x] != 9 {
 			p := Point{p.x, p.y + 1}
 			st.push(p)
 		}
 
-		if isValid(matrix, p.x-1, p.y-1) && height >= matrix[p.y-1][p.x] {
-			hasLower = true
-
+		if isValid(matrix, p.x, p.y-1) && matrix[p.y-1][p.x] != 9 {
 			p := Point{p.x, p.y - 1}
 			st.push(p)
 		}
 
-		visited[p] = true
-		if !hasLower {
-			lower = p
+		if matrix[p.y][p.x] != 9 {
+			basin = append(basin, p)
 		}
+
+		visited[p] = true
 	}
 
-	height := matrix[lower.y][lower.x]
-
-	if isValid(matrix, lower.x+1, lower.y) && height > matrix[lower.y][lower.x+1] {
-		return lower, false
-	}
-
-	if isValid(matrix, lower.x-1, lower.y) && height > matrix[lower.y][lower.x-1] {
-		return lower, false
-	}
-
-	if isValid(matrix, lower.x, lower.y+1) && height > matrix[lower.y+1][lower.x] {
-		return lower, false
-	}
-
-	if isValid(matrix, lower.x, lower.y-1) && height > matrix[lower.y-1][lower.x] {
-		return lower, false
-	}
-
-	return lower, true
+	return basin
 }
 
 func isValid(matrix [][]int, x int, y int) bool {
