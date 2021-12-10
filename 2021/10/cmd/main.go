@@ -7,6 +7,7 @@ import (
 	"os"
 	"path"
 	"runtime"
+	"sort"
 	"strings"
 )
 
@@ -55,50 +56,84 @@ func main() {
 	}
 
 	scoreBoard := map[string]int{
-		")": 3,
-		"]": 57,
-		"}": 1197,
-		">": 25137,
+		")": 1,
+		"]": 2,
+		"}": 3,
+		">": 4,
 	}
-
-	st := Stack{}
 
 	var errors []string
 
+	var missings [][]string
+
 	for _, row := range matrix {
-	line:
-		for _, parenthesis := range row {
-			if _, ok := pMap[parenthesis]; ok {
-				st.push(parenthesis)
-				continue
-			}
-
-			if op, ok := pRMap[parenthesis]; ok {
-				toMatch, err := st.pop()
-				toMatchS := fmt.Sprintf("%v", toMatch)
-
-				if err != nil {
-					panic(err)
-				}
-
-				if op != toMatchS {
-					errors = append(errors, parenthesis)
-				}
-				continue line
-			}
-
-			panic("missing parenthesis match")
+		e, m := parseRow(row, pMap, pRMap)
+		errors = append(errors, e)
+		if len(m) > 0 {
+			missings = append(missings, m)
 		}
 	}
 
-	score := 0
-	for _, p := range errors {
-		if s, ok := scoreBoard[p]; ok {
-			score += s
+	var scores []int
+	for _, p := range missings {
+		score := 0
+		for _, m := range p {
+			if s, ok := scoreBoard[m]; ok {
+				score = score * 5
+				score += s
+			}
+		}
+		scores = append(scores, score)
+	}
+
+	sort.Ints(scores)
+
+	l := len(scores)
+
+	fmt.Println(scores[l/2])
+}
+
+func parseRow(row []string, pMap map[string]string, pRMap map[string]string) (error string, missing []string) {
+	st := Stack{}
+
+	for _, parenthesis := range row {
+		if _, ok := pMap[parenthesis]; ok {
+			st.push(parenthesis)
+			continue
+		}
+
+		if op, ok := pRMap[parenthesis]; ok {
+			toMatch, err := st.pop()
+			toMatchS := fmt.Sprintf("%v", toMatch)
+
+			if err != nil {
+				panic(err)
+			}
+
+			if op != toMatchS {
+				return parenthesis, missing
+			}
+
+			continue
 		}
 	}
 
-	fmt.Println(score)
+	for st.cnt > 0 {
+		mp, err := st.pop()
+
+		if err != nil {
+			panic(err)
+		}
+
+		mpS := fmt.Sprintf("%v", mp)
+
+		if cp, ok := pMap[mpS]; ok {
+			missing = append(missing, cp)
+			continue
+		}
+	}
+
+	return error, missing
 }
 
 func parseInput() (matrix [][]string, err error) {
