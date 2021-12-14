@@ -27,38 +27,36 @@ func main() {
 
 	count := map[string]int{}
 
-	for _, s := range start {
-		countChart(string(s), count)
+	for i := 0; i < len(start) -1; i++ {
+		firstElement := string(start[i])
+		secondElement := string(start[i+1])
+		pair := firstElement + secondElement
+
+		countPair(pair, count)
 	}
 
-	for i := 0; i < 10; i++ {
-		polymer := start
-		newStart := ""
-		for sPos := 0; sPos < len(polymer)-1; sPos++ {
-			firstElement := string(polymer[sPos])
-			secondElement := string(polymer[sPos+1])
-			pair := firstElement + secondElement
-
-			newChar := transformations[pair]
-
-			if sPos == 0 {
-				newStart = newStart + firstElement + newChar + secondElement
-			} else {
-				newStart = newStart + newChar + secondElement
+	for i := 0; i < 41; i++ {
+		if i == 10 || i == 40 {
+			tempCount := map[string]int{}
+			for s := range count {
+				tempCount[string(s[0])] += count[s]
 			}
+			tempCount[string(start[len(start)-1])] += 1
 
-			countChart(newChar, count)
+			sortedCount := sortCount(tempCount)
+			tot := sortedCount[0].count - sortedCount[len(sortedCount)-1].count
+			fmt.Println(tot)
 		}
 
-		start = newStart
+		count2 := map[string]int{}
+		for pair, c := range count {
+			np1 := string(pair[0]) + transformations[pair]
+			np2 := transformations[pair] + string(pair[1])
+			count2[np1] += c
+			count2[np2] += c
+		}
+		count = count2
 	}
-
-	sortedCount := sortCount(count)
-	fmt.Println(sortedCount)
-
-	tot := sortedCount[0].count - sortedCount[len(sortedCount)-1].count
-
-	fmt.Println(tot)
 
 	fmt.Println("time:", time.Since(t))
 }
@@ -77,7 +75,7 @@ func sortCount(count map[string]int) []elementCount {
 	return s
 }
 
-func countChart(s string, count map[string]int) {
+func countPair(s string, count map[string]int) {
 	if _, ok := count[s]; !ok {
 		count[s] = 0
 	}
